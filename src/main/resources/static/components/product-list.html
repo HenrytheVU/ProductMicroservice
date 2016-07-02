@@ -127,9 +127,10 @@
     <iron-ajax
     id="addProductToShoppingCart"
     method='PUT'
-    url="/shoppingcarts/1/items/"
+    url="http://localhost:8082/shoppingcarts/1/items/"
     handle-as="json"
   	content-type="application/json"
+  	on-response="handleAddToCartResponse"
     debounce-duration="300"
     ></iron-ajax>
     
@@ -140,6 +141,9 @@
       is: 'product-list',
       
       properties: {
+    	  serviceUrl: {
+    		  value: "http://localhost:8081/products/"
+    	  },
 			data: {
 				type: Array,
 	          	notify: true,
@@ -150,26 +154,8 @@
         },
         
         ready: function() {
+        	console.log("service url ", this.serviceUrl);
         	this.refresh();
-        },
-        
-        observers: [
-          'dataAddedOrRemoved(data.splices)'
-        ],
-
-        dataAddedOrRemoved: function(changeRecord) {
-          if (changeRecord) {
-            changeRecord.indexSplices.forEach(function(s) {
-              s.removed.forEach(function(item) {
-                console.log(item.name + ' was removed');
-              });
-              for (var i=0; i<s.addedCount; i++) {
-                var index = s.index + i;
-                var item = s.object[index];
-                console.log('Item ' + item.name + ' added at index ' + index);
-              }
-            }, this);
-          }
         },
         
         refresh: function() {
@@ -182,7 +168,7 @@
         	console.log("Updating item: ");
             console.log(this.$.productList.selectedItem);
             var selectedItem = this.$.productList.selectedItem;
-            this.$.ajaxUpdateOne.url = "/products/".concat(selectedItem.id);
+            this.$.ajaxUpdateOne.url = this.serviceUrl.concat(selectedItem.id);
       	  	this.$.ajaxUpdateOne.body = selectedItem;
       	  	this.$.ajaxUpdateOne.generateRequest();
         },
@@ -190,7 +176,7 @@
         deleteItem: function() {
         	console.log("Deleting item");
             var selectedItem = this.$.productList.selectedItem;
-			this.$.ajaxDeleteOne.url = "/products/".concat(selectedItem.id);
+			this.$.ajaxDeleteOne.url = this.serviceUrl.concat(selectedItem.id);
             this.$.ajaxDeleteOne.generateRequest();
         },
         
@@ -212,12 +198,18 @@
         
         handleUpdateOneResponse: function() {
         	console.log("handling update response");
+        	document.querySelector("shopping-cart").refresh();
         	//this.refresh();
         },
         
         handleDeleteOneResponse: function() {
         	console.log("handling delete response");
         	this.refresh();
+        	document.querySelector("shopping-cart").refresh();
+        },
+        
+        handleAddToCartResponse: function() {
+        	document.querySelector("shopping-cart").refresh();
         },
         
         toggleDisabled: function(e) {

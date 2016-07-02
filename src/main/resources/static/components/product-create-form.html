@@ -73,6 +73,7 @@
         submitForm: function() {
         	if(this.$.form.validate()) {
 	        	console.log("Saving: " + this.product);
+	        	console.log("url: ", this.$.ajax.url);
 	      	  	this.$.ajax.method = 'POST';
 	      	  	this.$.ajax.body = this.product;
 	      	  	this.$.ajax.generateRequest();
@@ -83,6 +84,7 @@
         
         handleResponse: function(data) {
         	console.log(data.detail.response);
+        	document.querySelector("product-list").refresh();
         },
         
         updateItem() {
